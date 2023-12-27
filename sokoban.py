@@ -33,8 +33,6 @@ def game():
                 elif map_list[i][j] == 5 or map_list[i][j] == 9:
                     cells_total += 1
         f.close()
-        print(map_list)
-        print(coins_total, cells_total)
         return map_list, coins_total, cells_total
 
     def draw_map(map_list, gx, gy, dx, dy):
@@ -75,25 +73,29 @@ def game():
                         screen.blit(box, (x, y))
         return p_row, p_col
 
-    def define_following(p_row, p_col, e):
+    def define_following(p_row, p_col, e, moves):
         next_row, next_col = p_row, p_col
         box_next_row, box_next_col = p_row, p_col
         if e.key == settings.bind_up:
             next_row = p_row - 1
             box_next_row = p_row - 2
+            moves +=1
         elif e.key == settings.bind_down:
             next_row = p_row + 1
             box_next_row = p_row + 2
+            moves += 1
         elif e.key == settings.bind_left:
             next_col = p_col - 1
             box_next_col = p_col - 2
+            moves += 1
         elif e.key == settings.bind_right:
             next_col = p_col + 1
             box_next_col = p_col + 2
-        return next_row, next_col, box_next_row, box_next_col
+            moves += 1
+        return next_row, next_col, box_next_row, box_next_col, moves
 
     def move_player(p_row, p_col, next_row, next_col, box_next_row, box_next_col, map_list, current_coins, is_win,
-                    current_cells):
+                    current_stars):
         if map_list[next_row][next_col] == 0:
             map_list[next_row][next_col] = 7
             if map_list[p_row][p_col] == 7:
@@ -132,7 +134,7 @@ def game():
             elif map_list[p_row][p_col] == 8:
                 map_list[p_row][p_col] = 5
         elif map_list[next_row][next_col] == 4:
-            if current_coins == coins_total and current_cells == boxes_total:
+            if current_coins == coins_total and current_stars == boxes_total:
                 is_win = True
         elif map_list[next_row][next_col] == 5:
             map_list[next_row][next_col] = 8
@@ -184,17 +186,15 @@ def game():
             map_list[next_row][next_col] = 7
         p_row = next_row
         p_col = next_col
-        current_cells = 0
+        current_stars = 0
         for i in range(len(map_list)):
             for j in range(len(map_list[i])):
                 if map_list[i][j] == 9:
-                    current_cells += 1
-
-        print(is_win)
-        return p_col, p_row, next_row, next_col, box_next_row, box_next_col, map_list, current_coins, is_win, current_cells
+                    current_stars += 1
+        return p_col, p_row, next_row, next_col, box_next_row, box_next_col, map_list, current_coins, is_win, current_stars
     size = [1080, 720]
     screen = display.set_mode(size)
-    display.set_caption('Sokoban')
+    display.set_caption('sokoban')
     a_player = anim_list(transform.scale(image.load('content/avatar.png'),(96,96)), 32, 5)  # персонаж
     display.set_icon(a_player[1])
     bg = image.load(f'content/lvl{settings.current_level}/bg.jpg')
@@ -209,8 +209,10 @@ def game():
     coin_frame = 0
     font1 = font.Font('Bernhard.otf', 50)
     win = transform.scale(image.load('content/you_win.png'), size)
+
     notif = mixer.Sound('content/sfx/beep_notification.mp3')
     result = mixer.Sound('content/sfx/result_harmonic.mp3')
+
     next_player_row, next_player_col, k_nex_row, k_nex_col = 0,0,0,0
     gx, gy = 200, 200
     dx, dy = 32, 32
@@ -220,6 +222,7 @@ def game():
     current_boxes = 0
     current_coins = 0
     player_row, player_col = 0, 0
+    moves = 0
     map_list, coins_total, boxes_total = read_file(f'map{settings.current_level}.txt')
     is_win = False
     while run:
@@ -230,7 +233,7 @@ def game():
                 if e.type == KEYDOWN:
                     if e.key == K_ESCAPE:
                         run = False
-                    next_player_row, next_player_col, k_nex_row, k_nex_col = define_following(player_row, player_col, e)
+                    next_player_row, next_player_col, k_nex_row, k_nex_col, moves = define_following(player_row, player_col, e, moves)
             player_row, player_col, next_player_row, next_player_col, box_next_row, box_next_col, map_list, current_coins, \
                     is_win, current_boxes = move_player(player_row, player_col, next_player_row, next_player_col,
                                                         k_nex_row, k_nex_col, map_list, current_coins, is_win,
@@ -252,9 +255,31 @@ def game():
             screen.blit(boxes_text, [100, 50])
         else:
             result.play()
+            match(settings.current_level):
+                case 1:
+                    settings.lvl_1_last_moves = moves
+                    if settings.lvl_1_min_moves>settings.lvl_1_last_moves or settings.lvl_5_min_moves == 0:
+                        settings.lvl_1_min_moves = settings.lvl_1_last_moves
+                case 2:
+                    settings.lvl_2_last_moves = moves
+                    if settings.lvl_2_min_moves > settings.lvl_2_last_moves or settings.lvl_5_min_moves == 0:
+                        settings.lvl_2_min_moves = settings.lvl_2_last_moves
+                case 3:
+                    settings.lvl_3_last_moves = moves
+                    if settings.lvl_3_min_moves > settings.lvl_3_last_moves or settings.lvl_5_min_moves == 0:
+                        settings.lvl_3_min_moves = settings.lvl_3_last_moves
+                case 4:
+                    settings.lvl_4_last_moves = moves
+                    if settings.lvl_4_min_moves > settings.lvl_4_last_moves or settings.lvl_5_min_moves == 0:
+                        settings.lvl_4_min_moves = settings.lvl_4_last_moves
+                case 5:
+                    settings.lvl_5_last_moves = moves
+                    if settings.lvl_5_min_moves > settings.lvl_5_last_moves or settings.lvl_5_min_moves == 0:
+                        settings.lvl_5_min_moves = settings.lvl_5_last_moves
+            moves = 0
             settings.current_level += 1
-            print(settings.current_level)
             if settings.current_level <= 5:
+
                 settings.config = settings.cfg_save()
                 bg = image.load(f'content/lvl{settings.current_level}/bg.jpg')
                 road = image.load(f'content/lvl{settings.current_level}/ground.jpg')  # 0

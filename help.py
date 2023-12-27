@@ -10,8 +10,8 @@ def help():
     size = [1080, 720]
     font_base = font.Font('Bernhard.otf', 60)
     screen = display.set_mode(size)
-    display.set_caption('Сокобан.помощь')
-    player = image.load('content/player.png')
+    display.set_caption('Help')
+    player = image.load('content/avatar_icon.png')
     display.set_icon(player)
     help_text = ['      WELCOME!',
                  '',
@@ -38,6 +38,6 @@ def help():
             if e.type == QUIT:
                 run = False
             elif e.type == KEYDOWN:
-                if e.key == K_SPACE:
+                if e.key == K_ESCAPE:
                     run = False
         display.flip()

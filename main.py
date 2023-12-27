@@ -1,16 +1,17 @@
 from pygame import *
 from random import randint
-
-import settings
+from levels import levels
 
 init()
 from sokoban import game
 from help import help
 size = [1080, 720]
+
 beep_system = mixer.Sound("content/sfx/beep_system.mp3")
 swish = mixer.Sound("content/sfx/step_swish.mp3")
+
 screen = display.set_mode(size)
-display.set_caption('Игра')
+display.set_caption('sokoban')
 player = transform.scale(image.load('content/avatar_icon.png'), [64, 64])
 cursor = transform.scale(image.load('content/ui/cursor.png'), [32, 32])
 display.set_icon(player)
@@ -78,7 +79,7 @@ while run:
                     if menu_buttons_rect[i].collidepoint(pos):
                         if i == 0:
                             swish.play()
-                            game()
+                            levels()
                         elif i == 1:
                             swish.play()
                             help()
